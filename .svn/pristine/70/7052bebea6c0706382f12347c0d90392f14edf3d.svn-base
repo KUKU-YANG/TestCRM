@@ -1,0 +1,18 @@
+package com.crm.dao;
+
+import java.util.List;
+
+public interface JfreeChartDao {
+
+	List<Integer> findSourceCount()throws Exception;
+
+	List<Integer> findIndustryCount()throws Exception;
+
+	List<String> findSourceName()throws Exception;
+
+	List<String> findIndustryName()throws Exception;
+
+	Integer findSourceTotal()throws Exception;
+
+	Integer findIndustryTotal()throws Exception;
+}

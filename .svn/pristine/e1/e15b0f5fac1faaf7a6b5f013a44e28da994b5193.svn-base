@@ -1,0 +1,28 @@
+package com.crm.web.interceptor;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.crm.domain.User;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.interceptor.MethodFilterInterceptor;
+
+/**
+ * 权限拦截器
+ */
+public class PrivilegeInterceptor extends MethodFilterInterceptor{
+
+	@Override
+	protected String doIntercept(ActionInvocation invocation) throws Exception {
+		//判断session中是否有登录对象
+		User existUser=(User)ServletActionContext.getRequest().getSession().getAttribute("existUser");
+		if(existUser==null) {
+			ActionSupport actionSupport = (ActionSupport) invocation.getAction();
+			actionSupport.addActionError("未登录，请先登录");
+			return actionSupport.LOGIN;
+		}else {
+			return invocation.invoke();
+		}
+	}
+	
+}

@@ -1,0 +1,54 @@
+package com.crm.dao.impl;
+
+import java.util.List;
+
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.crm.dao.CustomerDao;
+import com.crm.domain.Customer;
+@Transactional
+public class CustomerDaoImpl extends HibernateDaoSupport implements CustomerDao{
+
+	@Override
+	public void save(Customer customer) throws Exception {
+		this.getHibernateTemplate().save(customer);
+	}
+
+	@Override
+	public Integer findCount(DetachedCriteria detachedCriteria) throws Exception {
+		detachedCriteria.setProjection(Projections.rowCount());
+		List<Long> list=(List<Long>) this.getHibernateTemplate().findByCriteria(detachedCriteria);
+		if(list.size()>0) {
+			return list.get(0).intValue();
+		}else
+		return null;
+	}
+
+	@Override
+	public List<Customer> findByPage(DetachedCriteria detachedCriteria, Integer begin, Integer pageSize)
+			throws Exception {
+		detachedCriteria.setProjection(null);
+		List<Customer> list=(List<Customer>) this.getHibernateTemplate().findByCriteria(detachedCriteria,begin,pageSize);
+		return list;
+	}
+
+	@Override
+	public Customer findById(Long cust_id) throws Exception {
+		Customer customer=this.getHibernateTemplate().get(Customer.class, cust_id);
+		return customer;
+	}
+
+	@Override
+	public void delete(Customer customer) throws Exception {
+		this.getHibernateTemplate().delete(customer);
+	}
+
+	@Override
+	public void update(Customer customer) throws Exception {
+		this.getHibernateTemplate().update(customer);
+	}
+
+}

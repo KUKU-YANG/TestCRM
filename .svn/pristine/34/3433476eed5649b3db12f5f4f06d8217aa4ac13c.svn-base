@@ -1,0 +1,56 @@
+package com.crm.dao.impl;
+
+import java.util.List;
+
+import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
+
+import com.crm.dao.JfreeChartDao;
+
+public class JfreeChartDaoImpl extends HibernateDaoSupport implements JfreeChartDao{
+	String sql;
+	List<Integer> count;
+	List<String> name;
+	Integer total;
+	@Override
+	public List<Integer> findSourceCount() throws Exception {
+		sql="SELECT COUNT(1) FROM cst_customer c,base_dict b WHERE c.cust_source=b.dict_id GROUP BY b.dict_item_name;";
+		count=(List<Integer>) this.getHibernateTemplate().getSessionFactory().openSession().createSQLQuery(sql).list();
+		return count;
+	}
+
+	@Override
+	public List<Integer> findIndustryCount() throws Exception {
+		sql="SELECT COUNT(1) FROM cst_customer c,base_dict b WHERE c.cust_industry=b.dict_id GROUP BY b.dict_item_name;";
+		count=(List<Integer>) this.getHibernateTemplate().getSessionFactory().openSession().createSQLQuery(sql).list();
+		return count;
+	}
+
+	@Override
+	public List<String> findSourceName() throws Exception {
+		sql="SELECT b.dict_item_name FROM cst_customer c,base_dict b WHERE c.cust_source=b.dict_id GROUP BY b.dict_item_name;";
+		name=(List<String>) this.getHibernateTemplate().getSessionFactory().openSession().createSQLQuery(sql).list();
+		return name;
+	}
+
+	@Override
+	public List<String> findIndustryName() throws Exception {
+		sql="SELECT b.dict_item_name FROM cst_customer c,base_dict b WHERE c.cust_industry=b.dict_id GROUP BY b.dict_item_name;";
+		name=(List<String>) this.getHibernateTemplate().getSessionFactory().openSession().createSQLQuery(sql).list();
+		return name;
+	}
+
+	@Override
+	public Integer findSourceTotal() throws Exception {
+		sql="SELECT COUNT(1) FROM base_dict b WHERE dict_type_name='客户信息来源';";
+		total=Integer.valueOf(this.getHibernateTemplate().getSessionFactory().openSession().createSQLQuery(sql).list().get(0).toString());
+		return total;
+	}
+
+	@Override
+	public Integer findIndustryTotal() throws Exception {
+		sql="SELECT COUNT(1) FROM base_dict b WHERE dict_type_name='客户行业';";
+		total=Integer.valueOf(this.getHibernateTemplate().getSessionFactory().openSession().createSQLQuery(sql).list().get(0).toString());
+		return total;
+	}
+
+}

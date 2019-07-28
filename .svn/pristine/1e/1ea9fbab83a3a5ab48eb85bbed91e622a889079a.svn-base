@@ -1,0 +1,166 @@
+package com.crm.web.action;
+
+import java.io.File;
+
+import org.apache.commons.io.FileUtils;
+import org.hibernate.criterion.DetachedCriteria;
+
+import com.crm.domain.Customer;
+import com.crm.domain.PageBean;
+import com.crm.service.CustomerService;
+import com.crm.utils.UploadUtils;
+import com.opensymphony.xwork2.ActionContext;
+import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.ModelDriven;
+
+public class CustomerAction extends ActionSupport implements ModelDriven<Customer>{
+	private Customer customer=new Customer();
+	@Override
+	public Customer getModel() {
+		return customer;
+	}
+	
+	private CustomerService customerService;
+	public void setCustomerService(CustomerService customerService) {
+		this.customerService = customerService;
+	}
+	
+	//使用set方法的方式接收数据
+	private Integer currPage=1;
+	public void setCurrPage(Integer currPage) {
+		this.currPage=currPage;
+	}
+	private Integer pageSize=3;	
+	public void setPageSize(Integer pageSize) {
+		this.pageSize = pageSize;
+	}
+
+	//文件上传提供的3个属性
+	private String uploadFileName;	  //文件名称
+	private File upload;			  //上传的文件
+	private String uploadContentType; //文件类型
+	public void setUploadFileName(String uploadFileName) {
+		this.uploadFileName = uploadFileName;
+	}
+	public void setUpload(File upload) {
+		this.upload = upload;
+	}
+	public void setUploadContentType(String uploadContentType) {
+		this.uploadContentType = uploadContentType;
+	}
+
+	/**
+	 * 跳转到添加页面
+	 */
+	public String saveUI() {
+		System.out.println("跳转到添加客户页面");
+		return "saveUI";
+	}
+	
+	/**
+	 * 添加客户
+	 * @throws Exception 
+	 */
+	public String save() throws Exception {
+		if(upload!=null) {
+			//设置上传路径
+			String path="D:/stsworkspace/crm01/WebContent/upload";
+			//一个目录下不要存放的相同文件名（随机文件名）
+			String uuidFileName=UploadUtils.getUuidFileName(uploadFileName);
+			//一个目录下不要存放过多文件（目录分离）
+			String realPath=UploadUtils.getPath(uuidFileName);
+			//创建目录
+			String url=path+realPath;
+			File file=new File(url);
+			if(!file.exists()) {
+				file.mkdirs();
+			}
+			//上传
+			File dictFile=new File(url+"/"+uuidFileName);
+			FileUtils.copyFile(upload, dictFile);
+			//手动设置image的属性值
+			customer.setCust_image(url+"/"+uuidFileName);
+		}
+		
+		customerService.save(customer);
+		return "saveSuccess";
+	}
+	
+	/**
+	 * 分页查询客户列表
+	 * @throws Exception 
+	 */
+	public String findAll() throws Exception {
+		//接收分页参数
+		//使用DetachedCriteria对象来查询
+		DetachedCriteria detachedCriteria=DetachedCriteria.forClass(Customer.class);
+		System.out.println(currPage+"  "+pageSize);
+		PageBean<Customer> pageBea=customerService.findByPage(detachedCriteria,currPage,pageSize);
+		ActionContext.getContext().getValueStack().push(pageBea);
+		return "findAll";
+	}
+	
+	/**
+	 * 删除客户
+	 * @throws Exception 
+	 */
+	public String delete() throws Exception {
+		//先查询后删除
+		customer=customerService.findById(customer.getCust_id());
+		//删除图片
+		if(customer.getCust_image()!=null) {
+			File file=new File(customer.getCust_image());
+			if(file.exists()) {
+				file.delete();
+			}
+		}
+		//删除客户
+		customerService.delete(customer);
+		return "deleteSuccess";
+	}
+	
+	/**
+	 * 跳转到修改客户页面
+	 * @throws Exception 
+	 */
+	public String updateUI() throws Exception {
+		//根据id查询并跳转页面且回显数据
+		customer=customerService.findById(customer.getCust_id());
+		return "updateUI";
+	}
+	
+	/**
+	 * 修改客户
+	 */
+	public String update()throws Exception{
+		//判断文件项是否被选择，没有就用原有的，否则删掉原有的上传新的
+		if(upload!=null) {
+			//删除原有的
+			String cust_image=customer.getCust_image();
+			if(cust_image!=null || !"".equals(cust_image)) {
+				File file=new File(cust_image);
+				file.delete();
+			}
+			//上传新的
+			//设置上传路径
+			String path="D:/stsworkspace/crm01/WebContent/upload";
+			//一个目录下不要存放的相同文件名（随机文件名）
+			String uuidFileName=UploadUtils.getUuidFileName(uploadFileName);
+			//一个目录下不要存放过多文件（目录分离）
+			String realPath=UploadUtils.getPath(uuidFileName);
+			//创建目录
+			String url=path+realPath;
+			File file=new File(url);
+			if(!file.exists()) {
+				file.mkdirs();
+			}
+			//上传
+			File dictFile=new File(url+"/"+uuidFileName);
+			FileUtils.copyFile(upload, dictFile);
+			//手动设置image的属性值
+			customer.setCust_image(url+"/"+uuidFileName);
+		}
+		customerService.update(customer);
+		return "updateSuccess";
+	}
+}

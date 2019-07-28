@@ -1,0 +1,64 @@
+package com.crm.web.action;
+
+import org.hibernate.criterion.DetachedCriteria;
+
+import com.crm.domain.Customer;
+import com.crm.domain.PageBean;
+import com.crm.service.CustomerService;
+import com.opensymphony.xwork2.ActionContext;
+import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.ModelDriven;
+
+public class CustomerAction extends ActionSupport implements ModelDriven<Customer>{
+	private Customer customer=new Customer();
+	@Override
+	public Customer getModel() {
+		return customer;
+	}
+	
+	private CustomerService customerService;
+	public void setCustomerService(CustomerService customerService) {
+		this.customerService = customerService;
+	}
+	
+	//使用set方法的方式接收数据
+	private Integer currPage=1;
+	public void setCurrPage(Integer currPage) {
+		this.currPage=currPage;
+	}
+	private Integer pageSize=3;	
+	public void setPageSize(Integer pageSize) {
+		this.pageSize = pageSize;
+	}
+
+	/**
+	 * 跳转到添加页面
+	 */
+	public String saveUI() {
+		System.out.println("跳转到添加客户页面");
+		return "saveUI";
+	}
+	
+	/**
+	 * 添加客户
+	 * @throws Exception 
+	 */
+	public String save() throws Exception {
+		customerService.save(customer);
+		return NONE;
+	}
+	
+	/**
+	 * 分页查询客户列表
+	 * @throws Exception 
+	 */
+	public String findAll() throws Exception {
+		//接收分页参数
+		//使用DetachedCriteria对象来查询
+		DetachedCriteria detachedCriteria=DetachedCriteria.forClass(Customer.class);
+		System.out.println(currPage+"  "+pageSize);
+		PageBean<Customer> pageBea=customerService.findByPage(detachedCriteria,currPage,pageSize);
+		ActionContext.getContext().getValueStack().push(pageBea);
+		return "findAll";
+	}
+}
